@@ -1,4 +1,4 @@
-from src.pandas.pandas_repo import *
+from falgueras.pandas.pandas_repo import *
 
 
 class PandasRepoType(Enum):

@@ -2,7 +2,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-from src.common.logging_utils import get_colored_logger
+from falgueras.common.logging_utils import get_colored_logger
 
 logger = get_colored_logger(__name__)
 

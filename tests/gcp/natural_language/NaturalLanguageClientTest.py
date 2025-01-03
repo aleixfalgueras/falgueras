@@ -2,8 +2,8 @@ import unittest
 
 from google.cloud import language_v2
 
-from src.gcp.natural_language.NaturalLanguageClient import NaturalLanguageClient
-from src.gcp.natural_language.model import EntityNl, SentimentNl, CategoryNl
+from falgueras.gcp.natural_language.NaturalLanguageClient import NaturalLanguageClient
+from falgueras.gcp.natural_language.model import EntityNl, SentimentNl, CategoryNl
 
 
 class NaturalLanguageClientTest(unittest.TestCase):
