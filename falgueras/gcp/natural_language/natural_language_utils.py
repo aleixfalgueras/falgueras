@@ -2,8 +2,8 @@ from typing import Optional
 
 from google.cloud import language_v2, language_v1
 
-from src.common.logging_utils import get_colored_logger
-from src.gcp.natural_language.model import EntityNl
+from falgueras.common.logging_utils import get_colored_logger
+from falgueras.gcp.natural_language.model import EntityNl
 
 logger = get_colored_logger(__name__)
 

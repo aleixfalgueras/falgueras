@@ -1,10 +1,6 @@
-from src import pandas as pd
-
+import pandas as pd
 
 def init():
-    """
-    Initialize project-wide settings.
-    """
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)
     pd.set_option('display.max_colwidth', None)

@@ -6,7 +6,7 @@ from google.cloud.bigquery import WriteDisposition, CreateDisposition
 from google.cloud.bigquery.table import RowIterator
 from pandas import DataFrame
 
-from src.common.logging_utils import get_colored_logger
+from falgueras.common.logging_utils import get_colored_logger
 
 logger = get_colored_logger(__name__)
 

@@ -1,7 +1,7 @@
 import unittest
 
-from src.gcp.natural_language.model import EntityNl
-from src.gcp.natural_language.natural_language_utils import remove_duplicate_entities
+from falgueras.gcp.natural_language.model import EntityNl
+from falgueras.gcp.natural_language.natural_language_utils import remove_duplicate_entities
 
 
 class NaturalLanguageUtilsTest(unittest.TestCase):

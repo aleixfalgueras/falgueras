@@ -3,12 +3,12 @@ from enum import Enum
 from io import StringIO
 from typing import Protocol
 
-from src import pandas as pd
+from falgueras import pandas as pd
 from google.cloud import bigquery
 from pandas import DataFrame
 
-from src.gcp.BqClient import BqClient
-from src.gcp.GcsClient import GcsClient
+from falgueras.gcp.BqClient import BqClient
+from falgueras.gcp.GcsClient import GcsClient
 
 
 class WriteModeType(Enum):

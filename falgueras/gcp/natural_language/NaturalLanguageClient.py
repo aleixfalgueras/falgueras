@@ -3,9 +3,9 @@ from typing import Optional
 from google.cloud import language_v1
 from google.cloud import language_v2
 
-from src.common.logging_utils import get_colored_logger
-from src.gcp.natural_language.model import EntityNl, SentimentNl, CategoryNl
-from src.gcp.natural_language.natural_language_utils import remove_duplicate_entities
+from falgueras.common.logging_utils import get_colored_logger
+from falgueras.gcp.natural_language.model import EntityNl, SentimentNl, CategoryNl
+from falgueras.gcp.natural_language.natural_language_utils import remove_duplicate_entities
 
 logger = get_colored_logger(__name__)
 
