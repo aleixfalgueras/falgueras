@@ -3,9 +3,9 @@ from dataclasses import asdict
 from pandas import DataFrame
 
 
-def serialize_dataclass_col(df: DataFrame, col_name: str) -> DataFrame:
+def serialize_for_bq_struct(df: DataFrame, col_name: str) -> DataFrame:
     """
-    Serializes a DataFrame column containing dataclass objects into a format compatible with
+    Serializes a DataFrame column containing dataclass type objects into a format compatible with
     BigQuery's STRUCT (RECORD) field type. Objects must first be converted into dictionaries
     or lists of dictionaries to avoid serialization errors.
     """
