@@ -7,6 +7,9 @@ from falgueras.common.logging_utils import get_colored_logger
 logger = get_colored_logger(__name__)
 
 class GoogleDriveClient:
+    """
+    A class to handle interactions with Google Drive.
+    """
 
     @staticmethod
     def write_file_in_google_drive(file_path: str,

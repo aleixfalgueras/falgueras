@@ -66,7 +66,7 @@ class BqClient:
             logger.error(f"Failed to execute query:\n{query}\nException:\n{e}")
             raise RuntimeError(f"Failed to execute query: {e}")
 
-    def load_table_from_dataframe(self,
+    def load_table_from_pandas_df(self,
                                   df: DataFrame,
                                   table_name: str,
                                   write_disposition: WriteDisposition,

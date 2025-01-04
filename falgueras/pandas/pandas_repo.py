@@ -3,7 +3,7 @@ from enum import Enum
 from io import StringIO
 from typing import Protocol
 
-from falgueras import pandas as pd
+import pandas as pd
 from google.cloud import bigquery
 from pandas import DataFrame
 
@@ -90,20 +90,20 @@ class BqPandasRepo(PandasRepo):
         """ Writes a Pandas DataFrame to the BigQuery table."""
         try:
             if write_mode == WriteModeType.CREATE:
-                self.client.load_table_from_dataframe(
+                self.client.load_table_from_pandas_df(
                     data,
                     self.table_name,
                     bigquery.WriteDisposition.WRITE_TRUNCATE
                 )
             elif write_mode == WriteModeType.TRUNCATE:
-                self.client.load_table_from_dataframe(
+                self.client.load_table_from_pandas_df(
                     data,
                     self.table_name,
                     bigquery.WriteDisposition.WRITE_TRUNCATE,
                     bigquery.CreateDisposition.CREATE_NEVER
                 )
             elif write_mode == WriteModeType.APPEND:
-                self.client.load_table_from_dataframe(
+                self.client.load_table_from_pandas_df(
                     data,
                     self.table_name,
                     bigquery.WriteDisposition.WRITE_APPEND,
@@ -116,7 +116,7 @@ class BqPandasRepo(PandasRepo):
                 # a list with the table column names following the table schema definition order
 
                 try:
-                    self.client.load_table_from_dataframe(
+                    self.client.load_table_from_pandas_df(
                         data,
                         temporal_table_name,
                         bigquery.WriteDisposition.WRITE_TRUNCATE
@@ -142,7 +142,7 @@ class BqPandasRepo(PandasRepo):
                 replace_condition = kwargs.get("replace_condition", None)
                 self.delete(replace_condition)
 
-                self.client.load_table_from_dataframe(
+                self.client.load_table_from_pandas_df(
                     data,
                     self.table_name,
                     bigquery.WriteDisposition.WRITE_APPEND,
