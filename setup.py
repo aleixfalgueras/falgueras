@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 
-# Function to read dependencies from requirements.txt
+# function to read dependencies from requirements.txt
 def parse_requirements(filename):
     with open(filename, 'r') as f:
         return [line.strip() for line in f if line.strip() and not line.startswith('#')]
@@ -9,7 +9,7 @@ def parse_requirements(filename):
 
 setup(
     name='falgueras',
-    version='0.1.0',
+    version='0.1.1',
     author='Aleix Falgueras Casals',
     author_email='falguerasaleix@gmail.com',
     description='Common code for Python projects involving GCP, Pandas, and Spark.',
