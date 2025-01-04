@@ -29,8 +29,14 @@ jobs:
           pip install -r requirements.txt
           pip install build twine
 
+      - name: Debug
+        run: |
+          ls
+          pwd
+
       - name: Build package files
-        run: python -m build
+        run: |
+          python -m build
 
       - name: Publish to PyPI
         env:
