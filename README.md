@@ -3,20 +3,44 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/falgueras?color=4CBB17)](https://pypi.org/project/falgueras/)
 
-Common code for Python projects involving GCP, Pandas, and Spark. 
+Development framework for Python projects involving GCP, Pandas, and Spark. 
 
 The main goal is to accelerate development of data-driven projects by providing a common framework for developers
 with different backgrounds: software engineers, big data engineers and data scientists.
 
 ## Installation
 
-`pip install falgueras`
+`pip install falgueras` (requieres Python>=3.10)
+
+Set GOOGLE_APPLICATION_CREDENTIALS environment variable to enable GCP services.
+
+### Run local Spark applications in Windows from IntelliJ
+
+_try fast fail fast learn fast_
+
+For local Spark execution in Windows, the following environment variables must be set appropriately: 
+- SPARK_HOME; version spark-3.5.2-bin-hadoop3.
+- HADOOP_HOME; same value than SPARK_HOME.
+- JAVA_HOME; recommended Java SDK 11.
+- PATH += %HADOOP_HOME%\bin, %JAVA_HOME%\bin.
+
+%HADOOP_HOME%\bin must contain files winutils.exe and hadoop.dll, download from 
+[here](https://github.com/kontext-tech/winutils/blob/master/hadoop-3.3.0/bin).
+
+Additionally, add `findspark.init()` at the beginning of the script in order to set and add 
+environment variables and dependencies to sys.path.
+
+### Connect to BigQuery from Spark
+
+As shown in the `spark_session_utils.py`, the SparkSession used must include the jar
+`com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.41.1` 
+in order to communicate with BigQuery.
 
 ## Packages
 
 ### `falgueras.common`
 
-Shared code between other packages: datetime, json, enums, logging.
+Shared code between other packages and utils functions: datetime, json, enums, logging.
 
 ### `falgueras.gcp`
 
@@ -34,7 +58,15 @@ Pandas related code.
 The pandas_repo.py file provides a modular and extensible framework for handling pandas DataFrame operations 
 across various storage systems. Using the `PandasRepo` abstract base class and `PandasRepoProtocol`, 
 it standardizes read and write operations while enabling custom implementations for specific backends 
-such as BigQuery (`BqPandasRepo`).
+such as BigQuery (`BqPandasRepo`). These implementations encapsulate backend-specific logic, allowing 
+users to interact with data sources using a consistent interface.
 
-These implementations encapsulate backend-specific logic, allowing users to interact with data sources 
-using a consistent interface.
+### `falgueras.spark`
+
+Spark related code.
+
+In the same way than the pandas_repo.py file, the spark_repo.py file provides a modular and extensible 
+framework for handling Spark DataFrame operations across various storage systems. Using the `SparkRepo` abstract base 
+class and `SparkRepoProtocol`, it standardizes read and write operations while enabling custom implementations for 
+specific backends such as BigQuery (`BqSparkRepo`). These implementations encapsulate backend-specific logic, allowing
+users to interact with data sources using a consistent interface.

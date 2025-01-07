@@ -23,3 +23,8 @@ def cast_to_datetime(timestamp_str: str, timestamp_format: str = TIMESTAMP_ISO_F
     except ValueError as exc:
         logger.error(exc)
         raise exc
+
+
+def format_datetime_iso(date_time: datetime) -> str:
+        """Format a datetime object into ISO format."""
+        return date_time.strftime(TIMESTAMP_ISO_FORMAT)
