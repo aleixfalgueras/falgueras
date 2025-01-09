@@ -1,15 +1,28 @@
 from pyspark.sql import SparkSession
 
 from falgueras.common.enums import ExecutionMode
+from falgueras.common.logging_utils import get_colored_logger
+
+logger = get_colored_logger(__name__)
 
 
 class SparkSessionUtils:
     """Utility class for creating and configuring Spark sessions."""
 
     @staticmethod
+    def log_spark_config(spark: SparkSession) -> None:
+        logger.info(f"""Spark session has been created with: 
+            --driver-cores: {spark.sparkContext.getConf().get('spark.driver.cores')}
+            --driver-memory: {spark.sparkContext.getConf().get('spark.driver.memory')}
+            --num-executors: {spark.sparkContext.getConf().get('spark.executor.instances')}
+            --executor-cores: {spark.sparkContext.getConf().get('spark.executor.cores')}
+            --executor-memory: {spark.sparkContext.getConf().get('spark.executor.memory')}
+            --timezone: {spark.sparkContext.getConf().get('spark.sql.session.timeZone')}""")
+
+    @staticmethod
     def get_spark_session(app_name: str,
                           execution_mode: str = ExecutionMode.LOCAL,
-                          timezone: str = "Europe/Sofia") -> SparkSession:
+                          timezone: str = "America/Bogota") -> SparkSession:
         """
         Creates and configures a Spark session.
 
@@ -34,8 +47,32 @@ class SparkSessionUtils:
                      .appName(app_name)
                      .getOrCreate())
 
-        # Common configurations
+        # common configurations
         spark.conf.set("viewsEnabled", "true")
         spark.conf.set("spark.sql.session.timeZone", timezone)
+
+        SparkSessionUtils.log_spark_config(spark)
+
+        return spark
+
+    @staticmethod
+    def create_spark_session_standalone(app_name: str,
+                                        master: str = "local",
+                                        executors: int = 2,
+                                        executor_cores: int = 4,
+                                        executor_memory: int = 8,
+                                        driver_cores: int = 2,
+                                        driver_memory: int = 4):
+
+        spark = SparkSession.builder.appName(app_name) \
+            .master(master) \
+            .config("spark.driver.cores", f"{driver_cores}G") \
+            .config("spark.driver.memory", f"{driver_memory}G") \
+            .config("spark.executor.memory", f"{executor_memory}G") \
+            .config("spark.executor.instances", executors) \
+            .config("spark.executor.cores", executor_cores) \
+            .getOrCreate()
+
+        SparkSessionUtils.log_spark_config(spark)
 
         return spark
