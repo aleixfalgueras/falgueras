@@ -26,6 +26,9 @@ class SparkSessionUtils:
         """
         Creates and configures a Spark session.
 
+        Jar gcs-connector-hadoop3-2.2.19.jar is download by URL instead of being retrieved from Maven to avoid
+        dependency conflict in local executing mode.
+
         Args:
             app_name (str): Name of the Spark application.
             execution_mode (str): Execution mode, either "LOCAL" or "CLUSTER".
@@ -38,10 +41,14 @@ class SparkSessionUtils:
             spark = (SparkSession.builder
                      .master("local[*]")
                      .appName(app_name)
+                     .config("spark.jars", "https://storage.googleapis.com/hadoop-lib/gcs/gcs-connector-hadoop3-2.2.19.jar")
                      .config("spark.jars.packages",
                              "com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.41.1,"
                              "org.apache.spark:spark-avro_2.12:3.5.2")
                      .getOrCreate())
+
+            spark._jsc.hadoopConfiguration().set('fs.gs.impl', 'com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem')
+
         else:
             spark = (SparkSession.builder
                      .appName(app_name)

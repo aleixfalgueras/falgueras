@@ -20,11 +20,8 @@ classifiers = [
 ]
 
 dependencies = [
+    "pytz~=2024.2",
     "colorama~=0.4.6",
-    "pytz~=2024.1",
-    "pandas~=2.2.2",
-    "db-dtypes~=1.3.1",
-    "numpy~=2.2.1",
     "google-api-core~=2.24.0",
     "google-auth~=2.37.0",
     "google-cloud-bigquery~=3.27.0",
@@ -35,6 +32,10 @@ dependencies = [
     "google-cloud-language~=2.16.0",
     "protobuf~=5.29.2",
     "requests~=2.32.3",
+    "findspark==1.4.2",
     "pyspark==3.5.2",
-    "findspark==1.4.2"
+    "numpy==1.26.4",
+    "pandas==2.1.4",
+    "db-dtypes~=1.3.1",
+    "pyarrow==12.0.1"
 ]
