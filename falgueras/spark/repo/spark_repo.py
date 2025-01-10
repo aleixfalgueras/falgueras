@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, date
 from enum import Enum
 from typing import Protocol, Optional
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.types import StructType
 
-from falgueras.common.datetime_utils import format_datetime_iso
+from falgueras.common.datetime_utils import bq_timestamp_format
 from falgueras.common.logging_utils import get_colored_logger
 
 logger = get_colored_logger(__name__)
@@ -53,7 +53,7 @@ class SparkRepo(ABC):
 class AvroSparkRepo(SparkRepo):
     """Concrete implementation of SparkRepo for reading and writing AVRO files."""
 
-    def __init__(self, path: str, spark: SparkSession):
+    def __init__(self, spark: SparkSession, path: str):
         """
         Initialize the AvroRepo with the path to the AVRO file and a Spark session.
 
@@ -90,8 +90,8 @@ class CsvSparkRepo(SparkRepo):
     }
 
     def __init__(self,
-                 path: str,
                  spark: SparkSession,
+                 path: str,
                  schema: Optional[StructType] = None,
                  read_options: Optional[dict[str, str]] = None,
                  write_options: Optional[dict[str, str]] = None):
@@ -131,7 +131,7 @@ class CsvSparkRepo(SparkRepo):
 class ParquetSparkRepo(SparkRepo):
     """Concrete implementation of SparkRepo for reading and writing Parquet files."""
 
-    def __init__(self, path: str, spark: SparkSession):
+    def __init__(self, spark: SparkSession, path: str):
         """
         Initialize the ParquetRepo.
 
@@ -160,7 +160,7 @@ class BqSparkRepo(SparkRepo):
 
     ONLY_READ_REPO = "ONLY_READ_REPO"
 
-    def __init__(self, table_name: str, spark: SparkSession, gcs_tmp_bucket: str = ONLY_READ_REPO):
+    def __init__(self, spark: SparkSession, table_name: str, gcs_tmp_bucket: str = ONLY_READ_REPO):
         """
         Initialize the BqRepo.
 
@@ -203,8 +203,8 @@ class BqSparkRepo(SparkRepo):
 
     def read_by_partitiontime_interval(self, start_datetime: datetime, end_datetime: datetime) -> DataFrame:
         """Reads partitions within a specified time interval."""
-        start_formatted = format_datetime_iso(start_datetime)
-        end_formatted = format_datetime_iso(end_datetime)
+        start_formatted = bq_timestamp_format(start_datetime)
+        end_formatted = bq_timestamp_format(end_datetime)
         query = f"""
             SELECT *, _PARTITIONTIME AS PARTITIONTIME
             FROM `{self.table_name}`
@@ -214,10 +214,10 @@ class BqSparkRepo(SparkRepo):
         logger.info(f"Reading partitions from {start_formatted} to {end_formatted}...")
         return self.run_sql_query(query)
 
-    def read_by_partition_time(self, partition_time: datetime) -> DataFrame:
+    def read_by_partitiontime(self, _partitiontime: datetime) -> DataFrame:
         """Reads data for a specific partition."""
-        partition_hour = partition_time.replace(minute=0, second=0, microsecond=0)
-        partition_formatted = format_datetime_iso(partition_hour)
+        partition_hour = _partitiontime.replace(minute=0, second=0, microsecond=0)
+        partition_formatted = bq_timestamp_format(partition_hour)
         query = f"""
             SELECT *, _PARTITIONTIME AS PARTITIONTIME
             FROM `{self.table_name}`
@@ -226,6 +226,15 @@ class BqSparkRepo(SparkRepo):
 
         logger.info(f"Reading partition for time {partition_formatted}...")
         return self.run_sql_query(query)
+
+    def read_by_partitiondate(self, _partitiondate: date):
+        """_PARTITIONDATE value is equal to _PARTITIONTIME truncated to date."""
+        self.read_by_partitiontime(datetime.combine(_partitiondate, datetime.min.time()))
+
+    def read_by_partitiondate_interval(self, start_date: date, end_date: date):
+        start_datetime = datetime.combine(start_date, datetime.min.time())
+        end_datetime = datetime.combine(end_date, datetime.min.time())
+        self.read_by_partitiontime_interval(start_datetime, end_datetime)
 
     def write_partition_date(self,
                              data: DataFrame,
