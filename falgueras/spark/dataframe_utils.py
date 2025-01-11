@@ -1,5 +1,4 @@
-from pyspark.pandas import DataFrame
-from pyspark.sql.connect.session import SparkSession
+from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.types import StructType
 
 

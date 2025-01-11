@@ -190,6 +190,8 @@ class BqSparkRepo(SparkRepo):
          .option("writeMethod", "direct")
          .save(self.table_name))
 
+        logger.info("Success writing")
+
     def write_in_ingestion_partitioned_table(self, data: DataFrame, save_mode: SaveMode) -> None:
         """At today, Direct write method does not support writing into a partitioned ingestion table."""
         logger.info(f"Writing to partitioned BigQuery table {self.table_name}...")
@@ -271,7 +273,7 @@ class BqSparkRepo(SparkRepo):
         if date_partition:
             options["datePartition"] = date_partition
             logger.info(f"Writing partition in BigQuery table {self.table_name}: \n" +
-                        f"[partition ID = $datePartitionValue, partition field = {partition_field}, " +
+                        f"[partition ID = {date_partition}, partition field = {partition_field}, " +
                         f"partition type = {partition_type}, mode = {save_mode}]")
         else:
             logger.info(f"Writing partitions in BigQuery table {self.table_name}: \n" +
@@ -279,6 +281,7 @@ class BqSparkRepo(SparkRepo):
                         f"partition type = {partition_type}, mode = {save_mode}]")
 
         data.write.format("bigquery").mode(save_mode.value).options(**options).save(self.table_name)
+        logger.info("Success writing")
 
     def read_external_table(self) -> DataFrame:
         """Reads data from an external BigQuery table."""
