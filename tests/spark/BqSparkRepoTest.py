@@ -9,10 +9,7 @@ from falgueras.spark.spark_session_utils import SparkSessionUtils
 findspark.init()
 
 spark = SparkSessionUtils.get_spark_session("BqSparkRepo write_partition_date test")
-
 gcsTmpBucket = "gs://tmp-bucket-rookieml"
-
-spark_repo_read = BqSparkRepo(spark, "rookieml.twitter.tweets_analyzed")
 
 students_daily_repo = BqSparkRepo(spark, "rookieml.testing.students_daily", gcsTmpBucket)
 students_date_partition_field = "birth_date"

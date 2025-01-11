@@ -10,7 +10,7 @@ from falgueras.spark.BqSparkSchema import BqSparkSchema
 class TestBqSparkSchema(unittest.TestCase):
 
     def setUp(self):
-        self.schema_file_path = os.path.join(os.path.dirname(__file__), "bq_schema.json")
+        self.schema_file_path = os.path.join(os.path.dirname(__file__), "resources/bq_schema.json")
 
     def test_get_spark_schema(self):
         """Test the conversion of a BigQuery JSON schema to a Spark schema."""
