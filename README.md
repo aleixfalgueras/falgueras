@@ -61,6 +61,8 @@ it standardizes read and write operations while enabling custom implementations 
 such as BigQuery (`BqPandasRepo`). These implementations encapsulate backend-specific logic, allowing 
 users to interact with data sources using a consistent interface.
 
+`BqPandasRepo` uses `gcp.BqClient` to interact with BigQuery.
+
 ### `falgueras.spark`
 
 Spark related code.
@@ -70,3 +72,6 @@ framework for handling Spark DataFrame operations across various storage systems
 class and `SparkRepoProtocol`, it standardizes read and write operations while enabling custom implementations for 
 specific backends such as BigQuery (`BqSparkRepo`). These implementations encapsulate backend-specific logic, allowing
 users to interact with data sources using a consistent interface.
+
+In contrast to `BqPandasRepo`, `BqSparkRepo` uses connectors 
+gcs-connector-hadoop3 and spark-bigquery-with-dependencies in order to interact with BigQuery.

@@ -179,29 +179,14 @@ class BqSparkRepo(SparkRepo):
 
         return self.spark.read.format("bigquery").load(self.table_name)
 
-    def write(self, data: DataFrame, save_mode: SaveMode) -> None:
-        """Writes data to the BigQuery table."""
-        logger.info(f"Writing to BigQuery table {self.table_name}...")
+    def read_external_table(self) -> DataFrame:
+        """Reads data from an external BigQuery table."""
+        materialization_dataset = self.table_name.split(".")[1]
+        self.spark.conf.set("materializationDataset", materialization_dataset)
+        query = f"SELECT * FROM `{self.table_name}`"
 
-        (data
-         .write
-         .format("bigquery")
-         .mode(save_mode.value)
-         .option("writeMethod", "direct")
-         .save(self.table_name))
-
-        logger.info("Success writing")
-
-    def write_in_ingestion_partitioned_table(self, data: DataFrame, save_mode: SaveMode) -> None:
-        """At today, Direct write method does not support writing into a partitioned ingestion table."""
-        logger.info(f"Writing to partitioned BigQuery table {self.table_name}...")
-
-        (data
-         .write
-         .format("bigquery")
-         .mode(save_mode.value)
-         .option("temporaryGcsBucket", self.gcs_tmp_bucket)
-         .save(self.table_name))
+        logger.info(f"Reading from external table {self.table_name} with query: \n{query}")
+        return self.run_sql_query(query)
 
     def read_by_partitiontime_interval(self, start_datetime: datetime, end_datetime: datetime) -> DataFrame:
         """Reads partitions within a specified time interval."""
@@ -237,6 +222,29 @@ class BqSparkRepo(SparkRepo):
         start_datetime = datetime.combine(start_date, datetime.min.time())
         end_datetime = datetime.combine(end_date, datetime.min.time())
         self.read_by_partitiontime_interval(start_datetime, end_datetime)
+    def write(self, data: DataFrame, save_mode: SaveMode) -> None:
+        """Writes data to the BigQuery table."""
+        logger.info(f"Writing to BigQuery table {self.table_name}...")
+
+        (data
+         .write
+         .format("bigquery")
+         .mode(save_mode.value)
+         .option("writeMethod", "direct")
+         .save(self.table_name))
+
+        logger.info("Success writing")
+
+    def write_in_ingestion_partitioned_table(self, data: DataFrame, save_mode: SaveMode) -> None:
+        """At today, Direct write method does not support writing to a partitioned ingestion table."""
+        logger.info(f"Writing to partitioned BigQuery table {self.table_name}...")
+
+        (data
+         .write
+         .format("bigquery")
+         .mode(save_mode.value)
+         .option("temporaryGcsBucket", self.gcs_tmp_bucket)
+         .save(self.table_name))
 
     def write_partition_date(self,
                              data: DataFrame,
@@ -283,14 +291,11 @@ class BqSparkRepo(SparkRepo):
         data.write.format("bigquery").mode(save_mode.value).options(**options).save(self.table_name)
         logger.info("Success writing")
 
-    def read_external_table(self) -> DataFrame:
-        """Reads data from an external BigQuery table."""
-        materialization_dataset = self.table_name.split(".")[1]
-        self.spark.conf.set("materializationDataset", materialization_dataset)
-        query = f"SELECT * FROM `{self.table_name}`"
-
-        logger.info(f"Reading from external table {self.table_name} with query: \n{query}")
-        return self.run_sql_query(query)
+    def truncate_repo(self) -> None:
+        """Truncates the BigQuery table."""
+        logger.info(f"Truncating BigQuery table {self.table_name}...")
+        query = f"TRUNCATE TABLE {self.table_name}"
+        self.run_sql_query(query)
 
     def read_partitions_info(self) -> DataFrame:
         """Reads partition information for the BigQuery table."""
@@ -303,12 +308,6 @@ class BqSparkRepo(SparkRepo):
         """
         logger.info(f"Reading partition info for BigQuery table {self.table_name}...")
         return self.run_sql_query(query)
-
-    def truncate_repo(self) -> None:
-        """Truncates the BigQuery table."""
-        logger.info(f"Truncating BigQuery table {self.table_name}...")
-        query = f"TRUNCATE TABLE {self.table_name}"
-        self.run_sql_query(query)
 
     def run_sql_query(self, query: str) -> DataFrame:
         """Executes a SQL query on BigQuery."""

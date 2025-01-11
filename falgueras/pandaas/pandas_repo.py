@@ -3,15 +3,17 @@ from enum import Enum
 from io import StringIO
 from typing import Protocol
 
-import pandas as pd
 from google.cloud import bigquery
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 
+from falgueras.common.logging_utils import get_colored_logger
 from falgueras.gcp.BqClient import BqClient
 from falgueras.gcp.GcsClient import GcsClient
 
+logger = get_colored_logger(__name__)
 
-class WriteModeType(Enum):
+
+class WriteMode(Enum):
     APPEND = "APPEND"
     TRUNCATE = "TRUNCATE"
     UPDATE = "UPDATE"
@@ -28,7 +30,7 @@ class PandasRepoProtocol(Protocol):
         """Read data into a DataFrame."""
         ...
 
-    def write(self, data: DataFrame, write_mode: WriteModeType, index=False, **kwargs) -> None:
+    def write(self, data: DataFrame, write_mode: WriteMode, index=False, **kwargs) -> None:
         """Write a DataFrame to a destination."""
         ...
 
@@ -42,7 +44,7 @@ class PandasRepo(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def write(self, data: DataFrame, write_mode: WriteModeType, index=False, **kwargs) -> None:
+    def write(self, data: DataFrame, write_mode: WriteMode, index=False, **kwargs) -> None:
         """Abstract method to write a DataFrame to a destination."""
         raise NotImplementedError
 
@@ -50,7 +52,7 @@ class PandasRepo(ABC):
 class BqPandasRepo(PandasRepo):
     """Concrete implementation for reading and writing DataFrames to BigQuery."""
 
-    def __init__(self, table_name: str, bq_client: BqClient):
+    def __init__(self, table_name: str, bq_client: BqClient = None):
         """
         Initializes the repository with a target table and BigQuery client.
 
@@ -62,6 +64,8 @@ class BqPandasRepo(PandasRepo):
             raise ValueError(
                 "The table must be in the format 'dataset_id.table_id' or 'project_id.dataset_id.table_id'."
             )
+        if bq_client is None:
+            bq_client = BqClient()
 
         self.client = bq_client
         self.table_name = table_name
@@ -84,32 +88,34 @@ class BqPandasRepo(PandasRepo):
 
     def write(self,
               data: DataFrame,
-              write_mode: WriteModeType,
+              write_mode: WriteMode,
               *, index: bool = False,
               **kwargs) -> None:
         """ Writes a Pandas DataFrame to the BigQuery table."""
+        logger.info(f"Writing to {self.table_name} with WriteMode {write_mode.value}, "
+                    f"extra args (if any): {kwargs}.")
         try:
-            if write_mode == WriteModeType.CREATE:
+            if write_mode == WriteMode.CREATE:
                 self.client.load_table_from_pandas_df(
                     data,
                     self.table_name,
                     bigquery.WriteDisposition.WRITE_TRUNCATE
                 )
-            elif write_mode == WriteModeType.TRUNCATE:
+            elif write_mode == WriteMode.TRUNCATE:
                 self.client.load_table_from_pandas_df(
                     data,
                     self.table_name,
                     bigquery.WriteDisposition.WRITE_TRUNCATE,
                     bigquery.CreateDisposition.CREATE_NEVER
                 )
-            elif write_mode == WriteModeType.APPEND:
+            elif write_mode == WriteMode.APPEND:
                 self.client.load_table_from_pandas_df(
                     data,
                     self.table_name,
                     bigquery.WriteDisposition.WRITE_APPEND,
                     bigquery.CreateDisposition.CREATE_NEVER
                 )
-            elif write_mode == WriteModeType.UPDATE:
+            elif write_mode == WriteMode.UPDATE:
                 temporal_table_name = self.table_name + "_temp"
                 update_key = kwargs.get("update_key", "id")  # column name which acts as a join key
                 columns_to_update = kwargs.get("columns_to_update", "")
@@ -138,7 +144,7 @@ class BqPandasRepo(PandasRepo):
                 except Exception as exc:
                     self.client.run_query(f"DROP TABLE IF EXISTS {temporal_table_name}")
                     raise exc
-            elif write_mode == WriteModeType.REPLACE:
+            elif write_mode == WriteMode.REPLACE:
                 replace_condition = kwargs.get("replace_condition", None)
                 self.delete(replace_condition)
 
@@ -151,7 +157,7 @@ class BqPandasRepo(PandasRepo):
             else:
                 raise ValueError(
                     f"Unsupported write_mode: {write_mode}, "
-                    f"available: {[e.value for e in WriteModeType]}"
+                    f"available: {[e.value for e in WriteMode]}"
                 )
         except Exception as e:
             raise RuntimeError(f"Failed to write data to BigQuery table {self.table_name} "
@@ -162,6 +168,18 @@ class BqPandasRepo(PandasRepo):
 
     def truncate_table(self):
         self.run_query(f"TRUNCATE TABLE {self.table_name}")
+
+    def read_partitions_info(self) -> DataFrame:
+        """Reads partition information for the BigQuery table."""
+        project, dataset, table = self.table_name.split(".")
+        query = f"""
+            SELECT partition_id, total_rows, total_logical_bytes, last_modified_time
+            FROM `{project}.{dataset}.INFORMATION_SCHEMA.PARTITIONS`
+            WHERE table_name = '{table}'
+            ORDER BY last_modified_time DESC
+        """
+        logger.info(f"Reading partition info for BigQuery table {self.table_name}...")
+        return self.client.run_query(query).to_dataframe()
 
     def run_query(self, query) -> None: self.client.run_query(query)
 
@@ -192,11 +210,11 @@ class GcsPandasRepo(PandasRepo):
         """Read a CSV file from GCS into a DataFrame."""
         try:
             csv_data = self.gcs.read_as_text(self.bucket, self.path)
-            return pd.read_csv(StringIO(csv_data))
+            return read_csv(StringIO(csv_data))
         except Exception as e:
             raise RuntimeError(f"Failed to read CSV from GCS path {self.path} in bucket {self.bucket}: {e}")
 
-    def write(self, data: DataFrame, write_mode: WriteModeType, *, index: bool = False, **kwargs) -> None:
+    def write(self, data: DataFrame, write_mode: WriteMode, *, index: bool = False, **kwargs) -> None:
         """Write a DataFrame to a CSV file in GCS."""
         try:
             csv_buffer = StringIO()
@@ -225,11 +243,11 @@ class CsvPandasRepo(PandasRepo):
     def read(self, **kwargs) -> DataFrame:
         """Read a CSV file into a DataFrame."""
         try:
-            return pd.read_csv(self.path, **kwargs)
+            return read_csv(self.path, **kwargs)
         except Exception as e:
             raise RuntimeError(f"Failed to read CSV from {self.path}: {e}")
 
-    def write(self, data: DataFrame, write_mode: WriteModeType, *, index: bool = False, **kwargs) -> None:
+    def write(self, data: DataFrame, write_mode: WriteMode, *, index: bool = False, **kwargs) -> None:
         """Write a DataFrame to a CSV file."""
         try:
             data.to_csv(self.path, index=index)
