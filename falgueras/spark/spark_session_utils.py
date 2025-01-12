@@ -21,7 +21,7 @@ class SparkSessionUtils:
 
     @staticmethod
     def get_spark_session(app_name: str,
-                          execution_mode: str = ExecutionMode.LOCAL,
+                          execution_mode: ExecutionMode = ExecutionMode.LOCAL,
                           timezone: str = "America/Bogota") -> SparkSession:
         """
         Creates and configures a Spark session.
