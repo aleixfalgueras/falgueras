@@ -53,7 +53,7 @@ class GcsClient:
         except Exception as e:
             raise Exception(f"Error reading PDF from GCS: {str(e)}")
 
-    def write_string(self, bucket_name: str, path: str, data: str, content_type: str = "text/csv") -> None:
+    def write_string(self, bucket_name: str, path: str, data: str, content_type: str = "text/csv") -> str:
         """
         Writes a string to a Google Cloud Storage bucket.
 
@@ -63,8 +63,7 @@ class GcsClient:
             data (str): The string data to be written.
             content_type (str): The MIME type of the content.
 
-        Raises:
-            RuntimeError: If the file cannot be written.
+        Raises: Return public url of the written object.
         """
         if not bucket_name or not path:
             raise ValueError("Bucket and path must be non-empty strings.")
@@ -72,6 +71,9 @@ class GcsClient:
         try:
             blob = self.client.get_bucket(bucket_name).blob(path)
             blob.upload_from_string(data, content_type=content_type)
+
+            return blob.public_url
+
         except Exception as e:
             raise RuntimeError(f"Failed to write data to {path} in {bucket_name}: {e}")
 
