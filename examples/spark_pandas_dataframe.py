@@ -1,4 +1,12 @@
-import findspark
+
+try:
+    import pyspark
+    import findspark
+except ImportError:
+    raise ImportError(
+        "Spark utilities require pyspark. Install with 'pip install falgueras[spark]'"
+    )
+
 import pandas as pd
 from pyspark.sql.types import StructType, StructField, IntegerType, StringType, DateType
 

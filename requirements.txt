@@ -10,8 +10,6 @@ google-cloud-secret-manager~=2.22.0
 google-cloud-language~=2.16.0
 protobuf~=5.29.2
 requests~=2.32.3
-findspark==1.4.2
-pyspark==3.5.2
 numpy==1.26.4
 pandas==2.1.4
 db-dtypes~=1.3.1

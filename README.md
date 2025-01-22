@@ -8,13 +8,18 @@ Development framework for Python projects involving GCP, Pandas, and Spark.
 The main goal is to accelerate development of data-driven projects by offering a unified framework 
 for developers with different backgrounds, from software and data engineers to data scientists.
 
-## Installation
+## Set up
 
-`pip install falgueras` (requieres Python>=3.10)
+Base package: `pip install falgueras` (requieres Python>=3.10)
 
-Set GOOGLE_APPLICATION_CREDENTIALS environment variable to enable GCP services.
+PySpark dependencies: `pip install falgueras[spark]` (PySpark 3.5.2)
 
-### Run local Spark applications in Windows from IntelliJ
+PySpark libraries are optional to keep the package lightweight and because in most cases 
+they are already provided by the environment. If you don't use falgueras PySpark
+dependencies, keep in mind that versions of the numpy, pandas and pyarrow packages were 
+tested against PySpark version 3.5.2. Behavior with other versions may change.
+
+### Run Spark 3.5.2 applications locally in Windows from IntelliJ
 
 _try fast fail fast learn fast_
 
