@@ -1,12 +1,12 @@
+from io import BytesIO
 from typing import Optional
 
+import PyPDF2
 from google.cloud import storage
 
 
 class GcsClient:
-    """
-    A class to handle Google Cloud Storage (GCS) operations.
-    """
+    """A class to handle Google Cloud Storage (GCS) operations."""
 
     def __init__(self, client: Optional[storage.Client] = None):
         """
@@ -19,19 +19,10 @@ class GcsClient:
         """
         self.client = storage.Client() if client is None else client
 
-    def read_as_text(self, bucket: str, path: str) -> str:
+    def read_text(self, bucket: str, path: str) -> str:
         """
         Reads a file from a Google Cloud Storage bucket as text.
-
-        Args:
-            bucket (str): The name of the bucket.
-            path (str): The path to the file within the bucket.
-
-        Returns:
-            str: The content of the file as a string.
-
-        Raises:
-            RuntimeError: If the file cannot be read.
+        Returns the content of the file as a string.
         """
         try:
             blob = self.client.get_bucket(bucket).blob(path)
@@ -39,12 +30,35 @@ class GcsClient:
         except Exception as e:
             raise RuntimeError(f"Failed to read {path} from {bucket}: {e}")
 
-    def write_string(self, bucket: str, path: str, data: str, content_type: str = "text/csv") -> None:
+    def read_pdf(self, bucket_name: str, file_name: str) -> str:
+        """
+        Read and extract text from a PDF stored in GCS.
+        Returns: Extracted text from the PDF.
+        """
+        try:
+
+            bucket = self.client.bucket(bucket_name)
+            blob = bucket.blob(file_name)
+
+            content = blob.download_as_bytes()
+            pdf_file = BytesIO(content)
+
+            reader = PyPDF2.PdfReader(pdf_file)
+            text = ''
+            for page in reader.pages:
+                text += page.extract_text() + '\n'
+
+            return text
+
+        except Exception as e:
+            raise Exception(f"Error reading PDF from GCS: {str(e)}")
+
+    def write_string(self, bucket_name: str, path: str, data: str, content_type: str = "text/csv") -> None:
         """
         Writes a string to a Google Cloud Storage bucket.
 
         Args:
-            bucket (str): The name of the bucket.
+            bucket_name (str): The name of the bucket.
             path (str): The path where the file should be written within the bucket.
             data (str): The string data to be written.
             content_type (str): The MIME type of the content.
@@ -52,11 +66,22 @@ class GcsClient:
         Raises:
             RuntimeError: If the file cannot be written.
         """
-        if not bucket or not path:
+        if not bucket_name or not path:
             raise ValueError("Bucket and path must be non-empty strings.")
 
         try:
-            blob = self.client.get_bucket(bucket).blob(path)
+            blob = self.client.get_bucket(bucket_name).blob(path)
             blob.upload_from_string(data, content_type=content_type)
         except Exception as e:
-            raise RuntimeError(f"Failed to write data to {path} in {bucket}: {e}")
+            raise RuntimeError(f"Failed to write data to {path} in {bucket_name}: {e}")
+
+    def exists_object(self, filename: str, bucket_name: str) -> bool:
+        """Checks if an object exists in a specified Google Cloud Storage bucket."""
+        try:
+            bucket = self.client.bucket(bucket_name)
+            blob = bucket.blob(filename)
+            
+            return blob.exists()
+        
+        except Exception as e:
+            raise RuntimeError(f"Failed to check existence of {filename} in bucket {bucket_name}: {e}")

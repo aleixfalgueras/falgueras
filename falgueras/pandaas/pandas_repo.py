@@ -209,7 +209,7 @@ class GcsPandasRepo(PandasRepo):
     def read(self) -> DataFrame:
         """Read a CSV file from GCS into a DataFrame."""
         try:
-            csv_data = self.gcs.read_as_text(self.bucket, self.path)
+            csv_data = self.gcs.read_text(self.bucket, self.path)
             return read_csv(StringIO(csv_data))
         except Exception as e:
             raise RuntimeError(f"Failed to read CSV from GCS path {self.path} in bucket {self.bucket}: {e}")
