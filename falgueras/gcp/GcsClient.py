@@ -1,7 +1,5 @@
-from io import BytesIO
 from typing import Optional
 
-import PyPDF2
 from google.cloud import storage
 
 
@@ -27,28 +25,17 @@ class GcsClient:
         try:
             blob = self.client.get_bucket(bucket).blob(path)
             return blob.download_as_text()
+
         except Exception as e:
             raise RuntimeError(f"Failed to read {path} from {bucket}: {e}")
 
-    def read_pdf(self, bucket_name: str, file_name: str) -> str:
-        """
-        Read and extract text from a PDF stored in GCS.
-        Returns: Extracted text from the PDF.
-        """
+    def read_bytes(self, bucket_name: str, file_name: str) -> bytes:
+        """Reads a file from a Google Cloud Storage bucket as bytes."""
         try:
-
             bucket = self.client.bucket(bucket_name)
             blob = bucket.blob(file_name)
 
-            content = blob.download_as_bytes()
-            pdf_file = BytesIO(content)
-
-            reader = PyPDF2.PdfReader(pdf_file)
-            text = ''
-            for page in reader.pages:
-                text += page.extract_text() + '\n'
-
-            return text
+            return blob.download_as_bytes()
 
         except Exception as e:
             raise Exception(f"Error reading PDF from GCS: {str(e)}")
