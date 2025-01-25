@@ -29,11 +29,11 @@ class GcsClient:
         except Exception as e:
             raise RuntimeError(f"Failed to read {path} from {bucket}: {e}")
 
-    def read_bytes(self, bucket_name: str, file_name: str) -> bytes:
+    def read_bytes(self, bucket_name: str, filename: str) -> bytes:
         """Reads a file from a Google Cloud Storage bucket as bytes."""
         try:
             bucket = self.client.bucket(bucket_name)
-            blob = bucket.blob(file_name)
+            blob = bucket.blob(filename)
 
             return blob.download_as_bytes()
 

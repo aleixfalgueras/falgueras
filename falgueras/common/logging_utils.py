@@ -1,4 +1,5 @@
 import logging
+from logging import Logger
 
 from colorama import Fore, Style
 
@@ -22,7 +23,7 @@ class ColoredFormatter(logging.Formatter):
         return f"{color}{msg}{Style.RESET_ALL}"
 
 
-def get_colored_logger(name: str, level: int = logging.INFO, log_file: str = None):
+def get_colored_logger(name: str, level: int = logging.INFO, log_file: str = None) -> Logger:
     logger = logging.getLogger(name)
     logger.setLevel(level)
 

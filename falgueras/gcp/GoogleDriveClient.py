@@ -13,7 +13,7 @@ class GoogleDriveClient:
 
     @staticmethod
     def write_file_in_google_drive(file_path: str,
-                                   target_file_name: str,
+                                   target_filename: str,
                                    mimetype: str,
                                    folder_id: str,
                                    service_account_key: dict,
@@ -23,7 +23,7 @@ class GoogleDriveClient:
 
         :param file_path:
             The local file path of the file to be uploaded.
-        :param target_file_name:
+        :param target_filename:
             The desired name for the file in Google Drive.
         :param mimetype:
             The MIME type of the file (e.g., 'text/csv', 'application/pdf').
@@ -43,11 +43,11 @@ class GoogleDriveClient:
         credentials = service_account.Credentials.from_service_account_info(service_account_key, scopes=scopes)
 
         drive_service = build("drive", "v3", credentials=credentials)
-        file_metadata = {"name": target_file_name, "parents": [folder_id]}
+        file_metadata = {"name": target_filename, "parents": [folder_id]}
         media = MediaFileUpload(file_path, mimetype)
 
         logger.info(f"Writing file {file_path} ({mimetype}) in Google Drive's folder ID {folder_id} "
-                    f"with name {target_file_name} using service_account {credentials.service_account_email}")
+                    f"with name {target_filename} using service_account {credentials.service_account_email}")
 
         file_id = drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
         file_url = f"https://drive.google.com/file/d/{file_id['id']}/view"
