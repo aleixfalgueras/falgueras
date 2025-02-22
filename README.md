@@ -50,7 +50,9 @@ Shared code between other packages and utils functions: datetime, json, enums, l
 ### `falgueras.gcp`
 
 The functionalities of various Google Cloud Platform (GCP) services are encapsulated within 
-custom client classes. This approach enhances clarity and promotes better encapsulation.
+custom client classes. This approach enhances clarity and promotes better encapsulation. 
+File `services_toolbox.py` contains standalone functions to interact with GCP services. If there's
+more than one function for a particular service, they must be grouped in a custom client class.
 
 For instance, Google Cloud Storage (GCS) operations are wrapped in the `gcp.GcsClient` class,
 which has an attribute that holds the actual `storage.Client` object from GCS. Multiple `GcsClient` 
