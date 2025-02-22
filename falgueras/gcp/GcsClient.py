@@ -21,18 +21,50 @@ class GcsClient:
         """
         self.client = storage.Client() if client is None else client
 
-    def read_text(self, bucket: str, path: str) -> str:
+    def exists_object(self, filename: str, bucket_name: str) -> bool:
+        """Checks if an object exists in a specified Google Cloud Storage bucket."""
+        try:
+            bucket = self.client.bucket(bucket_name)
+            blob = bucket.blob(filename)
+
+            return blob.exists()
+
+        except Exception as e:
+            logger.error(e)
+            raise RuntimeError(f"Failed to check existence of {filename} in bucket {bucket_name}: {e}")
+
+    def read_text(self, bucket_name: str, path: str) -> str:
         """
         Reads a file from a Google Cloud Storage bucket as text.
         Returns the content of the file as a string.
         """
         try:
-            blob = self.client.get_bucket(bucket).blob(path)
+            blob = self.client.get_bucket(bucket_name).blob(path)
             return blob.download_as_text()
 
         except Exception as e:
             logger.error(e)
-            raise RuntimeError(f"Failed to read {path} from {bucket}: {e}")
+            raise RuntimeError(f"Failed to read {path} from {bucket_name}: {e}")
+
+    def download_file(self,
+                      bucket_name: str,
+                      filename: str,
+                      target_filename: str = None) -> None:
+        """
+        Download an object into a named file, if not target_filename is provided, the same
+        object name is used for the naming the file.
+        """
+        try:
+            if not target_filename:
+                target_filename = filename
+
+            bucket = self.client.bucket(bucket_name)
+            blob = bucket.blob(filename)
+            blob.download_to_filename(target_filename)
+
+        except Exception as e:
+            logger.error(e)
+            raise RuntimeError(f"Failed to download '{filename}' from {bucket_name}: {e}")
 
     def read_bytes(self, bucket_name: str, filename: str) -> bytes:
         """Reads a file from a Google Cloud Storage bucket as bytes."""
@@ -80,15 +112,3 @@ class GcsClient:
         except Exception as e:
             logger.error(e)
             raise RuntimeError(f"Failed to write data to {path} in {bucket_name}: {e}")
-
-    def exists_object(self, filename: str, bucket_name: str) -> bool:
-        """Checks if an object exists in a specified Google Cloud Storage bucket."""
-        try:
-            bucket = self.client.bucket(bucket_name)
-            blob = bucket.blob(filename)
-
-            return blob.exists()
-
-        except Exception as e:
-            logger.error(e)
-            raise RuntimeError(f"Failed to check existence of {filename} in bucket {bucket_name}: {e}")
